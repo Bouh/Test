@@ -1,0 +1,85 @@
+<html>
+    <head>
+        <title>Game</title>
+		<script src="lib/three67.min.js"></script>
+		
+		
+		<script src="lib/OrbitControls.js"></script>
+		<script src="./lib/keyboard.js"></script>
+		<script src="./js/init.js" ></script>
+			
+		
+		
+		<script src="lib/FirstPersonControls.js" ></script>
+		<script src="lib/PointerLockControlsCannon.js" ></script>
+		<!--
+		<script src="lib/PointerLockControls.js" ></script>
+		-->
+		<script src="lib/cannon.js" ></script>
+		
+		
+		
+		<script src="lib/stats.min.js" ></script>
+		
+		<link type="text/css" rel="stylesheet" href="css/style.css" />
+		
+    </head>
+    <body>
+		<div id="info">
+			<p style="margin: 0px auto;">WIP</p>
+			<span id="time">00:00:00</span>
+		</div>		
+        <script async type="text/javascript">
+		
+		 var controls,time = Date.now();
+		///////////////
+		//Stats
+		///////////////
+		var stats = new Stats();
+		stats.setMode(0); // 0: fps, 1: ms
+
+		// Align top-left
+		stats.domElement.style.position = 'absolute';
+		stats.domElement.style.left = '0px';
+		stats.domElement.style.top = '0px';
+
+		document.body.appendChild( stats.domElement );
+		
+		
+		app.load_script("js/functions.js","text/javascript");
+		app.load_script("js/collisions.js","text/javascript");
+		
+		app.load_script("js/camera.js","text/javascript");
+		app.load_script("js/stage.js","text/javascript");
+		app.load_script("js/controls.js","text/javascript");
+		app.load_script("js/updateStage.js","text/javascript");
+		
+		app.load_script("data/data.js","text/javascript");
+			
+		check = app.images("img/checkerboard.jpg");
+		
+		window.onload = function(e){ 
+		
+			//chronometre
+			var instance = self.setInterval(changeTime ,1000);
+			
+			activePointerLock();
+			initCannon();
+			app.init_scene();//Scene création
+			
+			load_all_files(data);
+			
+			app.stage();//Placement des elements
+			
+			app.animate(app.delta);//refresh animation/render
+			
+			window.addEventListener( 'resize', onWindowResize, false );
+			//Affichage des scripts chargé ou non
+			app.log_console === true ? console.log("Chargement des scripts  --  OK : " + app.src_load +" | FAIL : "+ (app.total_src_toload - app.src_load) +" | ALL : "+ app.total_src_toload) : false ;
+		}
+
+			
+        </script>
+		<canvas id="mycanvas">Canvas is not supported :(</canvas>
+    </body>
+</html>
