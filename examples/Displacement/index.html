@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<script src="../../lib/three.js"></script>
+		<script src="../../lib/OrbitControls.js"></script>
+		<script src="../../lib/THREEx.WindowResize.js"></script>
+		<script src="../../lib/stats.min.js" ></script>		
+		
+		
+		<title>Displacement</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				font-family: Monospace;
+				background-color: black;
+				color: #000;
+				margin: 0px;
+				overflow: hidden;
+			}
+			#info {
+				color: black;
+				position: absolute;
+				top: 10px;
+				width: 100%;
+				text-align: center;
+				z-index: 100;
+				display:block;
+			}
+			#info a, .button { color: #f00; font-weight: bold; text-decoration: underline; cursor: pointer }
+		</style>
+	</head>
+
+	<body>
+		<div id="info">
+		<a href="http://threejs.org" target="_blank">three.js</a> - Displacement - <a href="http://www.witly.fr/portfolio" target="_blank">Aurélien Vivet</a>
+		</div>
+
+		<script>
+
+			var container = document.getElementsByTagName("canvas");
+			var stats = new Stats();
+
+			var camera, scene, renderer;
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+	
+				//camera
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+				camera.position.x = 0;
+				camera.position.y = 30;
+				camera.position.z = 40;
+				Orbitcontrols = new THREE.OrbitControls( camera );
+				
+				scene = new THREE.Scene();
+				
+
+				// light
+				var light = new THREE.PointLight( "white", 1, 40 );
+				light.position.set( 0, 20, 10 );
+				scene.add( light );
+
+				
+				// texture
+				var diffuse = THREE.ImageUtils.loadTexture( "img/256d.png" );
+				var spec = THREE.ImageUtils.loadTexture( "img/SPEC.png" );
+				var bump_displace = THREE.ImageUtils.loadTexture( "img/DISP.png" );
+				var normal = THREE.ImageUtils.loadTexture( "img/NRM.png" );
+				var occlusion = THREE.ImageUtils.loadTexture( "img/OCC.png" );
+				
+
+				//displacement shader 
+				var shader = THREE.ShaderLib[ "normalmap" ];
+				var uniforms = THREE.UniformsUtils.clone( shader.uniforms );
+
+				uniforms[ "tDiffuse" ].value = diffuse;
+				uniforms[ "enableDiffuse" ].value = true;
+				
+				uniforms[ "enableDisplacement" ].value = true;
+				uniforms[ "tDisplacement" ].value = bump_displace;
+				uniforms[ "uDisplacementScale" ].value = 2;
+				
+				uniforms[ "enableSpecular" ].value = true ;
+				uniforms[ "tSpecular" ].value = spec ;
+				
+				uniforms[ "specular" ].value = new THREE.Color("orange") ;
+				uniforms[ "shininess" ].value = "35" ;
+				
+				uniforms[ "tNormal" ].value = normal;
+				
+				uniforms[ "enableAO" ].value = true;
+				uniforms[ "tAO" ].value = occlusion;
+				
+
+				var parameters = { fragmentShader: shader.fragmentShader, vertexShader: shader.vertexShader, uniforms: uniforms, lights: true, wireframe: false };
+				var mat_displace = new THREE.ShaderMaterial( parameters );
+				
+				
+				//helper
+				var axisHelper = new THREE.AxisHelper( 15 );
+				scene.add( axisHelper );
+				
+				var pointLightHelper = new THREE.PointLightHelper( light, 1 );
+				scene.add( pointLightHelper );
+				
+				
+				// model
+				geo = new THREE.PlaneGeometry(50, 50,100,100);
+
+				geo.computeVertexNormals(); //important for displacement
+				geo.computeFaceNormals(); //important for displacement
+				geo.computeTangents(); //important for displacement
+				
+				object = new THREE.Mesh( geo, mat_displace );
+				
+				object.name = "sol";
+				
+				object.rotation.x = -90* Math.PI / 180;
+				
+				scene.add(object);
+				
+				//Render
+				
+				renderer = new THREE.WebGLRenderer({antialias: true});
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				//Stats
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				container.appendChild( stats.domElement );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+			}
+			
+			
+			
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+			}
+			
+			function animate() {
+				Orbitcontrols.update();
+				stats.update();
+				requestAnimationFrame( animate );
+				render();
+			}
+
+			function render() {
+				
+				renderer.setClearColor("wheat");//couleur de fond du canvas
+				renderer.render( scene, camera );
+			}
+
+		</script>
+
+	</body>
+</html>

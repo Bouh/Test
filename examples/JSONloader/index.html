@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<script src="../../lib/three.js"></script>
+		<script src="../../lib/OrbitControls.js"></script>
+		<script src="../../lib/THREEx.WindowResize.js"></script>
+		<script src="../../lib/stats.min.js" ></script>		
+		
+		<script src="../../lib/OBJLoader.js" ></script>		
+		
+		
+		<title>JSONloader</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				font-family: Monospace;
+				background-color: black;
+				color: #000;
+				margin: 0px;
+				overflow: hidden;
+			}
+			#info {
+				color: black;
+				position: absolute;
+				top: 10px;
+				width: 100%;
+				text-align: center;
+				z-index: 100;
+				display:block;
+			}
+			#info a, .button { color: #f00; font-weight: bold; text-decoration: underline; cursor: pointer }
+		</style>
+	</head>
+
+	<body>
+		<div id="info">
+		<a href="http://threejs.org" target="_blank">three.js</a> - JSONloader - <a href="http://www.witly.fr/portfolio" target="_blank">Aurélien Vivet</a>
+		</div>
+
+		<script>
+
+			var container = document.getElementsByTagName("canvas");
+			var stats = new Stats();
+
+			var camera, scene, renderer;
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+				
+				camera.position.x = 0;
+				camera.position.y = 30;
+				camera.position.z = 40;
+
+				Orbitcontrols = new THREE.OrbitControls( camera );
+				
+				scene = new THREE.Scene();
+				
+				// light
+				
+				var light = new THREE.PointLight( "white", 1, 40 );
+				light.position.set( 0, 0, 10 );
+				scene.add( light );
+
+				// texture
+
+				var manager = new THREE.LoadingManager();
+				manager.onProgress = function ( item, loaded, total ) {
+					console.log( item, loaded, total );
+				};
+				
+				//mat lambert
+				lambert = new THREE.MeshLambertMaterial({
+					color: "grey"
+				})
+
+				
+				//helper
+				var axisHelper = new THREE.AxisHelper( 15 );
+				scene.add( axisHelper );
+				
+				var pointLightHelper = new THREE.PointLightHelper( light, 1 );
+				scene.add( pointLightHelper );
+				
+				// model
+				var loader = new THREE.JSONLoader( manager );
+				var animation;
+				
+				loader.load( 'animation/move.obj', function (object) {
+				
+					object.name = "suzanne";
+					
+					//pour chaque enfant dans object
+					object.traverse( function ( child ) {
+
+						//si l'enfant est un mesh
+						if ( child instanceof THREE.Mesh ) {
+
+							child.material = lambert;
+						}
+					} );
+					scene.add(object);
+				} );
+				
+				//Render
+				
+				renderer = new THREE.WebGLRenderer({antialias: true});
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				
+				container.appendChild( renderer.domElement );
+
+				//Stats
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				container.appendChild( stats.domElement );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+			}
+			
+			
+			
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+			}
+			
+			function animate() {
+				Orbitcontrols.update();
+				stats.update();
+				requestAnimationFrame( animate );
+				render();
+			}
+
+			function render() {
+				
+				renderer.setClearColor("wheat");//couleur de fond du canvas
+				renderer.render( scene, camera );
+			}
+
+		</script>
+
+	</body>
+</html>
